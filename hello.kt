@@ -38,13 +38,13 @@ public class Complex(public val x: Double, public val y: Double) {
 
 		private val ABS_THRESHOLD = 2.0
 
-		public fun centeredAndScaled(imagePoint: Complex, imageWidth: Double, imageHeight: Double, centre: Complex): Complex {
+		public fun centeredAndScaled(imagePoint: Complex, imageWidth: Double, imageHeight: Double, centre: Complex, zoom: Double): Complex {
 			val imageCentre = Complex(0.5 * imageWidth, 0.5 * imageHeight)
 			val centered = imagePoint - imageCentre
 			
 			val imageRadius = imageWidth / 2
 			val scaled = centered * (ABS_THRESHOLD / imageRadius)
-			return scaled - centre
+			return scaled * zoom - centre
 		}
 
 		// 0 is divergent. scale is 0 - 1,
@@ -76,7 +76,7 @@ public class Draw : JPanel() {
 	val BACKGROUND = Color.BLUE
 	val FOREGROUND = Color.RED
 
-	val EVENTUAL_CENTRE = Complex(-0.28, 0.0)
+	val EVENTUAL_CENTRE = Complex(-0.279, 0.0)
 
 	private var frameNum = 0;
 
@@ -85,10 +85,12 @@ public class Draw : JPanel() {
     protected override fun paintComponent(graphics: Graphics) {
 		super.paintComponent(graphics)
 
-		val iterations = frameNum
+		val iterations = Math.max(frameNum, 30)
 		// val centreDistance = 1 - (0.3).pow(frameNum)
 		val centre = EVENTUAL_CENTRE
-		val zoom = 0.9 * frameNum
+		val zoom = 0.95.pow(frameNum)
+
+		println("zoom = $zoom")
 		val image = mandlebrotImage(iterations, centre, zoom)
 		if (animationTimer.isRunning()) {
 			frameNum += 1
@@ -102,7 +104,7 @@ public class Draw : JPanel() {
 
 		for (x in 0 .. WIDTH - 1) {
 			for (y in 0 .. HEIGHT - 1) {
-				val point = Complex.centeredAndScaled(Complex(x.toDouble(), y.toDouble()), WIDTH.toDouble(), HEIGHT.toDouble(), centre)
+				val point = Complex.centeredAndScaled(Complex(x.toDouble(), y.toDouble()), WIDTH.toDouble(), HEIGHT.toDouble(), centre, zoom)
 				val convergenceScale = Complex.convergenceScale(point, iters)
 				val colour = if (convergenceScale > 0) {
 					this.interpolate(BACKGROUND, FOREGROUND, convergenceScale)
